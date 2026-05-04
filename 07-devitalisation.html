@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<title>Dr. Crutel — N°7 Dévitalisation</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Kalam:wght@300;400;700&family=Patrick+Hand&display=swap" rel="stylesheet"/>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #0a0a0a; font-family: 'Caveat', cursive; overflow: hidden; }
+  #root { position: absolute; inset: 0; }
+  .nav-back { position: fixed; top: 16px; left: 16px; z-index: 100; font-family: 'Caveat', cursive; font-size: 22px; color: #f6efe2; text-decoration: none; background: rgba(20,20,20,0.7); padding: 6px 14px; border: 1px solid rgba(246,239,226,0.2); border-radius: 6px; }
+</style>
+<style id="embed-mode-style">
+/* Embed mode: hide playback bar + nav, transparent letterbox bg */
+body.embed-mode { background: transparent !important; }
+body.embed-mode .nav-back { display: none !important; }
+/* Stage's flex container is #root > div; PlaybackBar is its 2nd child */
+body.embed-mode #root > div { background: transparent !important; }
+body.embed-mode #root > div > *:nth-child(2) { display: none !important; }
+/* Slight shadow tweak so it sits flat in iframe */
+body.embed-mode #root > div > div:first-child > div { box-shadow: none !important; }
+</style>
+<script>
+(function() {
+  if (new URLSearchParams(location.search).has('embed')) {
+    document.documentElement.classList.add('embed-mode');
+    document.addEventListener('DOMContentLoaded', () => {
+      document.body.classList.add('embed-mode');
+    });
+  }
+})();
+</script>
+</head>
+<body data-anim-root data-screen-label="07 Devitalisation t=0s">
+<a class="nav-back" href="index.html">← Carnet</a>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="animations.jsx"></script>
+<script type="text/babel" src="sketch-components.jsx"></script>
+<script type="text/babel">
+const { useEffect } = React;
+
+function DevitAnim() {
+  const time = useTime();
+  useEffect(() => { document.body.setAttribute('data-screen-label', `07 Devitalisation t=${Math.floor(time)}s`); }, [Math.floor(time)]);
+
+  return (
+    <PaperBg>
+      <PageHeader title="La dévitalisation" subtitle="sauver la dent malgré tout" num={7} progress={1}/>
+
+      {/* Scene 1: dent malade — pulpe enflammée */}
+      <Sprite start={0.5} end={4.5}>
+        {({ progress }) => {
+          const drawP = clamp(progress / 0.4, 0, 1);
+          const washP = clamp((progress - 0.3) / 0.4, 0, 1);
+          const painP = clamp((progress - 0.5) / 0.4, 0, 1);
+          // Pulse pain effect
+          const pulse = 1 + Math.sin(time * 6) * 0.08 * painP;
+          return (
+            <>
+              <svg width="1920" height="1080" style={{ position: 'absolute', inset: 0 }}>
+                <SketchDefs/>
+                <g transform={`translate(960 620) scale(${pulse})`} style={{ transformOrigin: '960px 620px' }}>
+                  <ToothMolar cx={0} cy={0} scale={2.4}
+                              drawProgress={drawP} washProgress={washP} showGum={true} showBone={true}
+                              showPulp={true}/>
+                </g>
+                {/* Inflamed pulp — red glow inside */}
+                {painP > 0 && (
+                  <g opacity={painP}>
+                    <ellipse cx="960" cy="535" rx="60" ry="80"
+                             fill="rgba(210, 90, 75, 0.55)" filter="url(#watercolorEdge)"/>
+                    <path d="M 935 460 Q 960 580 985 460 M 925 480 Q 960 600 995 480"
+                          stroke="rgba(210, 90, 75, 0.7)" strokeWidth="3" fill="none"/>
+                  </g>
+                )}
+                {/* pain rays */}
+                {painP > 0.3 && (
+                  <g opacity={(painP - 0.3) * 1.5} stroke="rgba(210, 90, 75, 0.7)" strokeWidth="2.5" strokeLinecap="round">
+                    {[0, 60, 120, 180, 240, 300].map(a => {
+                      const r1 = 180, r2 = 220;
+                      const cx = 960, cy = 480;
+                      const x1 = cx + Math.cos(a * Math.PI/180) * r1;
+                      const y1 = cy + Math.sin(a * Math.PI/180) * r1;
+                      const x2 = cx + Math.cos(a * Math.PI/180) * r2;
+                      const y2 = cy + Math.sin(a * Math.PI/180) * r2;
+                      return <line key={a} x1={x1} y1={y1} x2={x2} y2={y2}/>;
+                    })}
+                  </g>
+                )}
+              </svg>
+              <HandwrittenLabel text="Une dent qui souffre…"
+                x={140} y={400} size={42} progress={drawP} rotate={-1}/>
+              <HandwrittenLabel text="le nerf est infecté"
+                x={140} y={460} size={28} progress={painP}
+                color={'rgba(210, 90, 75, 0.85)'} rotate={-1}/>
+              {painP > 0.4 && (
+                <HandwrittenLabel text="aïe !"
+                  x={1320} y={310} size={48} progress={(painP - 0.4) * 2}
+                  color={'rgba(210, 90, 75, 0.85)'} rotate={8}/>
+              )}
+            </>
+          );
+        }}
+      </Sprite>
+
+      {/* Scene 2: cleaning the canals */}
+      <Sprite start={4.5} end={10.5}>
+        {({ progress }) => {
+          // file (instrument) descends into root canal
+          // Root canal goes from y=0 (crown/root junction) to y=100 (root tip), in tooth-local coords
+          // After translate(960 620) and scale 2.4: roots span y=620 to y=860 on screen
+          // Two roots at local x ≈ -22 and +25 → screen x ≈ 907 and 1020
+          const fileY = interpolate([0.1, 0.45], [-300, 200], Easing.easeInOutCubic)(progress);
+          const fileOpacity = clamp(progress / 0.1, 0, 1);
+          const cleanedP = clamp((progress - 0.4) / 0.3, 0, 1);
+          const fillP = clamp((progress - 0.7) / 0.3, 0, 1);
+
+          return (
+            <>
+              <svg width="1920" height="1080" style={{ position: 'absolute', inset: 0 }}>
+                <SketchDefs/>
+                <g transform="translate(960 620)">
+                  <ToothMolar cx={0} cy={0} scale={2.4}
+                              drawProgress={1} washProgress={1} showGum={true} showBone={true}
+                              showPulp={true}/>
+                  {/* opening on top */}
+                  <g transform="scale(2.4)">
+                    <path d="M -18 -106 Q 0 -110 18 -106 L 18 -86 L -18 -86 Z"
+                          fill="rgba(30, 25, 20, 0.85)"/>
+                  </g>
+                  {/* cleaned canals — inside the roots (y=0 to y=95 in tooth-local coords) */}
+                  {cleanedP > 0 && (
+                    <g opacity={cleanedP} transform="scale(2.4)">
+                      {/* left root canal — follows root1 curve */}
+                      <path d="M -22 0 Q -28 30 -25 60 Q -22 85 -28 95"
+                            stroke="rgba(255, 250, 240, 0.9)" strokeWidth="2.2" strokeLinecap="round" fill="none"/>
+                      {/* right root canal — follows root2 curve */}
+                      <path d="M 25 0 Q 22 30 26 60 Q 30 85 35 95"
+                            stroke="rgba(255, 250, 240, 0.9)" strokeWidth="2.2" strokeLinecap="round" fill="none"/>
+                    </g>
+                  )}
+                  {/* gutta-percha filling (fills root canals) */}
+                  {fillP > 0 && (
+                    <g opacity={fillP} transform="scale(2.4)">
+                      <path d="M -22 0 Q -28 30 -25 60 Q -22 85 -28 95"
+                            stroke="rgba(220, 90, 75, 0.85)" strokeWidth="2.6" strokeLinecap="round" fill="none"/>
+                      <path d="M 25 0 Q 22 30 26 60 Q 30 85 35 95"
+                            stroke="rgba(220, 90, 75, 0.85)" strokeWidth="2.6" strokeLinecap="round" fill="none"/>
+                      {/* sealing material on top of crown opening */}
+                      <path d="M -22 -100 Q 0 -106 22 -100 L 22 -82 L -22 -82 Z"
+                            fill="rgba(245, 240, 230, 0.95)" stroke={SketchColors.pencil} strokeWidth="0.7"/>
+                    </g>
+                  )}
+                </g>
+
+                {/* endodontic file descending into the LEFT root canal
+                    aligned over root1 (screen x ≈ 907, root tip at y ≈ 848) */}
+                {fileOpacity > 0 && progress < 0.55 && (
+                  <g transform={`translate(907 ${380 + fileY})`} opacity={fileOpacity}>
+                    {/* handle */}
+                    <rect x="-14" y="0" width="28" height="60" rx="4"
+                          fill="rgba(180,210,230,0.6)" stroke={SketchColors.pencil} strokeWidth="1.2"/>
+                    {/* shaft — long enough to reach the root tip */}
+                    <rect x="-1.5" y="60" width="3" height="220"
+                          fill={SketchColors.pencil}/>
+                    {/* spiral file flutes (active tip portion) */}
+                    <path d="M -3 200 Q 3 210 -3 220 Q 3 230 -3 240 Q 3 250 -3 260 Q 3 270 -3 280"
+                          stroke={SketchColors.pencil} strokeWidth="1.2" fill="none"/>
+                  </g>
+                )}
+              </svg>
+              <HandwrittenLabel text="① Ouverture & retrait du nerf"
+                x={140} y={400} size={36} progress={clamp(progress / 0.2, 0, 1)} rotate={-1}/>
+              <HandwrittenLabel text="② Nettoyage des canaux"
+                x={140} y={460} size={28} progress={clamp((progress - 0.3) / 0.3, 0, 1)}
+                color={SketchColors.pencilLight} rotate={-1}/>
+              <HandwrittenLabel text="③ Obturation étanche"
+                x={140} y={510} size={28} progress={clamp((progress - 0.65) / 0.3, 0, 1)}
+                color={SketchColors.pencilLight} rotate={-1}/>
+              <HandwrittenLabel text="(sous anesthésie — indolore)"
+                x={140} y={560} size={22} progress={clamp((progress - 0.4) / 0.3, 0, 1)}
+                color={SketchColors.pencilLight} rotate={-1}/>
+            </>
+          );
+        }}
+      </Sprite>
+
+      {/* Scene 3: dent sauvée + couronne */}
+      <Sprite start={10.5} end={14.0}>
+        {({ progress }) => {
+          const crownP = clamp((progress - 0.3) / 0.4, 0, 1);
+          return (
+            <>
+              <svg width="1920" height="1080" style={{ position: 'absolute', inset: 0 }}>
+                <SketchDefs/>
+                <g transform="translate(960 620)">
+                  <ToothMolar cx={0} cy={0} scale={2.4}
+                              drawProgress={1} washProgress={1} showGum={true} showBone={true}/>
+                  {/* protective crown */}
+                  {crownP > 0 && (
+                    <g opacity={crownP} transform="scale(2.4)">
+                      <path d="M -52 -112 Q -68 -100 -70 -68 Q -74 -38 -67 -8 L 67 -8 Q 74 -38 70 -68 Q 68 -100 52 -112 Q 30 -120 0 -118 Q -30 -120 -52 -112 Z"
+                            fill="rgba(255, 252, 245, 0.92)"
+                            stroke={SketchColors.pencil} strokeWidth="1.2" filter="url(#pencilRough)"/>
+                      <path d="M -45 -100 Q -38 -85 -28 -92 Q -15 -100 0 -90 Q 18 -100 30 -92 Q 42 -85 48 -100"
+                            stroke={SketchColors.pencilLight} strokeWidth="0.6" fill="none" opacity="0.6"/>
+                    </g>
+                  )}
+                </g>
+                {/* heart/check */}
+                <g transform="translate(960 360)" opacity={clamp(progress / 0.3, 0, 1)}>
+                  <path d="M 0 14 C -16 -2 -30 -2 -30 -14 C -30 -24 -20 -28 -10 -22 C -4 -18 0 -10 0 -10 C 0 -10 4 -18 10 -22 C 20 -28 30 -24 30 -14 C 30 -2 16 -2 0 14 Z"
+                        fill="rgba(244, 175, 178, 0.7)" stroke={SketchColors.pencil} strokeWidth="1.5" filter="url(#pencilRough)"/>
+                </g>
+              </svg>
+              <HandwrittenLabel text="④ Couronne de protection"
+                x={140} y={400} size={36} progress={crownP} rotate={-1}/>
+              <HandwrittenLabel text="↳ la dent est sauvée"
+                x={140} y={460} size={28} progress={clamp((progress - 0.5) / 0.3, 0, 1)}
+                color={SketchColors.pencilLight} rotate={-1}/>
+            </>
+          );
+        }}
+      </Sprite>
+
+      {/* Final */}
+      <Sprite start={14.0} end={17.0}>
+        {({ progress }) => (
+          <div style={{ position: 'absolute', left: 0, right: 0, top: '40%', textAlign: 'center',
+            opacity: progress < 0.2 ? progress * 5 : progress > 0.85 ? (1 - progress) * 6.6 : 1 }}>
+            <div style={{ fontFamily: "'Caveat', cursive", fontSize: 88, fontWeight: 700, color: SketchColors.pencil, transform: 'rotate(-1deg)' }}>
+              Sauvée plutôt qu'arrachée.
+            </div>
+            <div style={{ fontFamily: "'Caveat', cursive", fontSize: 36, marginTop: 12, color: SketchColors.pencilLight, fontStyle: 'italic' }}>
+              Une dent gardée vaut mieux que deux remplacées.
+            </div>
+          </div>
+        )}
+      </Sprite>
+
+      <Signature progress={clamp((time - 14) / 1, 0, 1)}/>
+    </PaperBg>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <Stage width={1920} height={1080} duration={17} background="#f6efe2" persistKey="dent07">
+    <DevitAnim/>
+  </Stage>
+);
+</script>
+</body>
+</html>

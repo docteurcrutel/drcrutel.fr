@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<title>Dr. Crutel — N°1 Implant dentaire</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Kalam:wght@300;400;700&family=Patrick+Hand&display=swap" rel="stylesheet"/>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #0a0a0a; font-family: 'Caveat', cursive; overflow: hidden; }
+  #root { position: absolute; inset: 0; }
+  .nav-back {
+    position: fixed; top: 16px; left: 16px; z-index: 100;
+    font-family: 'Caveat', cursive; font-size: 22px;
+    color: #f6efe2; text-decoration: none;
+    background: rgba(20,20,20,0.7);
+    padding: 6px 14px;
+    border: 1px solid rgba(246,239,226,0.2);
+    border-radius: 6px;
+    backdrop-filter: blur(6px);
+  }
+  .nav-back:hover { background: rgba(40,40,40,0.9); }
+</style>
+<style id="embed-mode-style">
+/* Embed mode: hide playback bar + nav, transparent letterbox bg */
+body.embed-mode { background: transparent !important; }
+body.embed-mode .nav-back { display: none !important; }
+/* Stage's flex container is #root > div; PlaybackBar is its 2nd child */
+body.embed-mode #root > div { background: transparent !important; }
+body.embed-mode #root > div > *:nth-child(2) { display: none !important; }
+/* Slight shadow tweak so it sits flat in iframe */
+body.embed-mode #root > div > div:first-child > div { box-shadow: none !important; }
+</style>
+<script>
+(function() {
+  if (new URLSearchParams(location.search).has('embed')) {
+    document.documentElement.classList.add('embed-mode');
+    document.addEventListener('DOMContentLoaded', () => {
+      document.body.classList.add('embed-mode');
+    });
+  }
+})();
+</script>
+</head>
+<body data-anim-root data-screen-label="01 Implant t=0s">
+<a class="nav-back" href="index.html">← Carnet</a>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="animations.jsx"></script>
+<script type="text/babel" src="sketch-components.jsx"></script>
+
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+// ── Scene 1: Intro — "il manque une dent" ───────────────────────────────────
+function SceneIntro() {
+  const { progress } = useSprite();
+  // contour draw -> wash -> highlight gap
+  const drawP = clamp(progress / 0.35, 0, 1);
+  const washP = clamp((progress - 0.25) / 0.35, 0, 1);
+  const gapHighlight = clamp((progress - 0.55) / 0.45, 0, 1);
+
+  return (
+    <svg width="1920" height="1080" style={{ position: 'absolute', inset: 0 }}>
+      <SketchDefs/>
+      {/* Three teeth in a row, middle one missing */}
+      <g transform="translate(960 580)">
+        <ToothMolar cx={-280} cy={0} scale={1.2} drawProgress={drawP} washProgress={washP} showGum={true}/>
+        {/* Empty socket in the middle — gum with a gap */}
+        <g>
+          {/* gum wash */}
+          <g opacity={clamp(washP * 1.2, 0, 1)}>
+            <path d="M -110 0 Q 0 -10 110 0 L 110 30 Q 0 38 -110 30 Z"
+                  fill="rgba(244, 175, 178, 0.6)" filter="url(#watercolorEdge)"/>
+          </g>
+          {/* gum line pencil */}
+          <g filter="url(#pencilRough)">
+            <DrawnPath d="M -110 0 Q 0 -10 110 0 L 110 30 Q 0 38 -110 30 Z"
+                       progress={drawP}
+                       strokeWidth={1.4} stroke={SketchColors.pencilLight}/>
+          </g>
+          {/* socket dip (empty) */}
+          {gapHighlight > 0 && (
+            <g opacity={gapHighlight}>
+              <ellipse cx="0" cy="-2" rx="38" ry="14" fill="rgba(180, 100, 90, 0.35)" filter="url(#watercolorEdge)"/>
+              <DrawnPath d="M -38 -2 Q 0 18 38 -2"
+                         progress={1} strokeWidth={1.4} stroke={SketchColors.pencil}
+                         fill="none"/>
+            </g>
+          )}
+        </g>
+        <ToothMolar cx={280} cy={0} scale={1.2} drawProgress={drawP} washProgress={washP} showGum={true}/>
+      </g>
+
+      {/* Annotation arrow + label */}
+      {gapHighlight > 0.3 && (
+        <g opacity={clamp((gapHighlight - 0.3) / 0.7, 0, 1)}>
+          <ArrowSketch from={{x: 1100, y: 380}} to={{x: 985, y: 555}}
+                       curvature={20} progress={1} strokeWidth={1.8}/>
+        </g>
+      )}
+      <SignDef/>
+    </svg>
+  );
+}
+
+function SignDef() {
+  return (
+    <defs>
+      <pattern id="hatch" width="4" height="4" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+        <line x1="0" y1="0" x2="0" y2="4" stroke={SketchColors.pencilLight} strokeWidth="0.5"/>
+      </pattern>
+    </defs>
+  );
+}
+
+// ── Scene 2: pose de l'implant (vis dans l'os) ──────────────────────────────
+function SceneImplant() {
+  const { progress } = useSprite();
+  // Phases: gum opens (0-.15) → screw descends (0.15-.55) → screw seated + wash (0.55-1)
+  const screwY = interpolate([0.15, 0.55], [-260, 0], Easing.easeInOutCubic)(progress);
+  const screwOpacity = clamp((progress - 0.1) / 0.1, 0, 1);
+  const boneDraw = clamp(progress / 0.5, 0, 1);
+  const boneWash = clamp((progress - 0.3) / 0.4, 0, 1);
+  const settled = clamp((progress - 0.6) / 0.3, 0, 1);
+
+  // Bone anatomy
+  const boneTopPath = "M 600 540 Q 960 525 1320 540 L 1320 580 Q 960 590 600 580 Z";
+  const boneBodyPath = "M 600 580 Q 960 596 1320 580 L 1320 850 Q 1100 870 960 870 Q 820 870 600 850 Z";
+
+  // Implant screw (titanium): threaded body
+  const screwPath = "M 920 600 L 920 800 Q 920 820 940 825 Q 960 828 980 825 Q 1000 820 1000 800 L 1000 600 Z";
+
+  return (
+    <svg width="1920" height="1080" style={{ position: 'absolute', inset: 0 }}>
+      <SketchDefs/>
+      {/* Gum line */}
+      <g opacity={boneWash * 0.9}>
+        <path d="M 580 525 Q 960 510 1340 525 L 1340 555 Q 960 565 580 555 Z"
+              fill="rgba(244, 175, 178, 0.55)" filter="url(#watercolorEdge)"/>
+      </g>
+      {/* Bone wash */}
+      <g opacity={boneWash}>
+        <path d={boneTopPath} fill="rgba(230, 215, 180, 0.6)" filter="url(#watercolorEdge)"/>
+        <path d={boneBodyPath} fill="rgba(230, 215, 180, 0.45)" filter="url(#watercolorEdge)"/>
+      </g>
+      {/* Bone porous texture (hatching dots) */}
+      {boneWash > 0.3 && (
+        <g opacity={(boneWash - 0.3) * 1.4} stroke={SketchColors.pencilLight} strokeWidth="0.6" fill="none">
+          {[...Array(40)].map((_, i) => {
+            const x = 620 + (i * 17.5) % 700;
+            const y = 620 + Math.floor((i * 17.5) / 700) * 30 + (i % 3) * 8;
+            return <circle key={i} cx={x} cy={y} r={1.2}/>;
+          })}
+        </g>
+      )}
+      {/* Adjacent teeth (faded context) */}
+      <g opacity="0.5">
+        <ToothMolar cx={500} cy={530} scale={0.95} drawProgress={1} washProgress={1} showGum={true}/>
+        <ToothMolar cx={1420} cy={530} scale={0.95} drawProgress={1} washProgress={1} showGum={true}/>
+      </g>
+      {/* Bone contour pencil */}
+      <g filter="url(#pencilRough)">
+        <DrawnPath d="M 580 525 Q 960 510 1340 525" progress={boneDraw} strokeWidth={1.3} stroke={SketchColors.pencilLight}/>
+        <DrawnPath d="M 580 555 Q 960 568 1340 555" progress={boneDraw} strokeWidth={1.3} stroke={SketchColors.pencilLight}/>
+        <DrawnPath d={boneBodyPath} progress={boneDraw} strokeWidth={1.4} stroke={SketchColors.pencilLight}/>
+      </g>
+
+      {/* Implant screw — descending */}
+      {screwOpacity > 0 && (
+        <g transform={`translate(0 ${screwY})`} opacity={screwOpacity}>
+          {/* shadow */}
+          <path d={screwPath} fill="rgba(180, 180, 180, 0.4)" filter="url(#watercolorEdge)"/>
+          {/* threads */}
+          <g filter="url(#pencilRough)">
+            <DrawnPath d={screwPath} progress={1} strokeWidth={1.6}/>
+            {[610, 635, 660, 685, 710, 735, 760, 785].map((y, i) => (
+              <DrawnPath key={i}
+                d={`M 920 ${y} Q 960 ${y + 3} 1000 ${y}`}
+                progress={1} strokeWidth={1} stroke={SketchColors.pencilLight}/>
+            ))}
+          </g>
+          {/* highlight */}
+          <ellipse cx="945" cy="650" rx="6" ry="40" fill="rgba(255,255,255,0.4)"/>
+        </g>
+      )}
+
+      {/* Settled labels with arrow */}
+      {settled > 0.3 && (
+        <g opacity={clamp((settled - 0.3) / 0.7, 0, 1)}>
+          <ArrowSketch from={{x: 1180, y: 720}} to={{x: 1010, y: 700}} curvature={15} progress={1}/>
+        </g>
+      )}
+    </svg>
+  );
+}
+
+// ── Scene 3: pose de la couronne sur l'implant ──────────────────────────────
+function SceneCouronne() {
+  const { progress } = useSprite();
+  const crownY = interpolate([0.0, 0.5], [-280, 0], Easing.easeInOutCubic)(progress);
+  const crownOpacity = clamp(progress / 0.1, 0, 1);
+  const wash = clamp((progress - 0.4) / 0.4, 0, 1);
+  const sparkle = clamp((progress - 0.75) / 0.25, 0, 1);
+
+  // Pre-existing implant (screw in bone) — static
+  return (
+    <svg width="1920" height="1080" style={{ position: 'absolute', inset: 0 }}>
+      <SketchDefs/>
+      {/* gum + bone background, settled */}
+      <g opacity="0.8">
+        <path d="M 580 525 Q 960 510 1340 525 L 1340 555 Q 960 565 580 555 Z"
+              fill="rgba(244, 175, 178, 0.55)" filter="url(#watercolorEdge)"/>
+        <path d="M 600 555 Q 960 570 1320 555 L 1320 850 Q 960 870 600 850 Z"
+              fill="rgba(230, 215, 180, 0.45)" filter="url(#watercolorEdge)"/>
+      </g>
+      <g opacity="0.6">
+        <ToothMolar cx={500} cy={530} scale={0.95} drawProgress={1} washProgress={1} showGum={true}/>
+        <ToothMolar cx={1420} cy={530} scale={0.95} drawProgress={1} washProgress={1} showGum={true}/>
+      </g>
+      <g filter="url(#pencilRough)">
+        {/* implant screw */}
+        <path d="M 920 555 L 920 800 Q 920 820 940 825 Q 960 828 980 825 Q 1000 820 1000 800 L 1000 555 Z"
+              fill="rgba(200, 200, 200, 0.4)" stroke={SketchColors.pencil} strokeWidth="1.5"/>
+        {[605, 630, 655, 680, 705, 730, 755, 780].map((y, i) => (
+          <path key={i} d={`M 920 ${y} Q 960 ${y + 3} 1000 ${y}`} stroke={SketchColors.pencilLight} strokeWidth="1" fill="none"/>
+        ))}
+        {/* abutment (above gum) */}
+        <path d="M 935 510 L 935 555 L 985 555 L 985 510 Z" fill="rgba(244, 223, 166, 0.7)" stroke={SketchColors.pencil} strokeWidth="1.2"/>
+      </g>
+
+      {/* Crown descending */}
+      {crownOpacity > 0 && (
+        <g transform={`translate(0 ${crownY})`} opacity={crownOpacity}>
+          <ToothMolar cx={960} cy={555} scale={1.1} drawProgress={1} washProgress={1} showGum={false}/>
+        </g>
+      )}
+
+      {/* Sparkles when seated */}
+      {sparkle > 0 && (
+        <g opacity={sparkle}>
+          {[
+            {x: 880, y: 440, s: 1},
+            {x: 1040, y: 460, s: 1.2},
+            {x: 960, y: 410, s: 0.9},
+            {x: 1070, y: 510, s: 0.8},
+          ].map((p, i) => (
+            <g key={i} transform={`translate(${p.x} ${p.y}) scale(${p.s})`} stroke={SketchColors.pencil} strokeWidth="1.5" strokeLinecap="round">
+              <line x1="-8" y1="0" x2="8" y2="0"/>
+              <line x1="0" y1="-8" x2="0" y2="8"/>
+              <line x1="-5" y1="-5" x2="5" y2="5" opacity="0.6"/>
+              <line x1="-5" y1="5" x2="5" y2="-5" opacity="0.6"/>
+            </g>
+          ))}
+        </g>
+      )}
+    </svg>
+  );
+}
+
+// ── Top-level animation ─────────────────────────────────────────────────────
+function ImplantAnimation() {
+  const time = useTime();
+  // Update timestamp label
+  useEffect(() => {
+    const sec = Math.floor(time);
+    document.body.setAttribute('data-screen-label', `01 Implant t=${sec}s`);
+  }, [Math.floor(time)]);
+
+  return (
+    <PaperBg>
+      <PageHeader title="L'implant dentaire" subtitle="comment remplacer une dent perdue" num={1} progress={1}/>
+
+      {/* Scene 1: situation initiale */}
+      <Sprite start={0.5} end={4.0}>
+        {({ progress }) => (
+          <>
+            <SceneIntro/>
+            <HandwrittenLabel text="Une dent manquante…"
+              x={1100} y={340} size={42} progress={clamp((progress - 0.4) / 0.5, 0, 1)}
+              rotate={-2}/>
+          </>
+        )}
+      </Sprite>
+
+      {/* Scene 2: pose de l'implant */}
+      <Sprite start={4.0} end={8.5}>
+        {({ progress }) => (
+          <>
+            <SceneImplant/>
+            <HandwrittenLabel text="① La racine en titane"
+              x={140} y={620} size={44} progress={clamp(progress / 0.3, 0, 1)} rotate={-1}/>
+            <HandwrittenLabel text="vissée dans l'os de la mâchoire"
+              x={140} y={680} size={28} progress={clamp((progress - 0.2) / 0.4, 0, 1)}
+              color={SketchColors.pencilLight} rotate={-1}/>
+            <HandwrittenLabel text="(quasi indolore)"
+              x={1200} y={770} size={28} progress={clamp((progress - 0.6) / 0.3, 0, 1)}
+              color={SketchColors.pencilLight} rotate={-3}/>
+          </>
+        )}
+      </Sprite>
+
+      {/* Brief beat with caption */}
+      <Sprite start={8.5} end={9.3}>
+        {({ progress }) => (
+          <div style={{
+            position: 'absolute', left: '50%', top: '45%',
+            transform: 'translate(-50%, -50%)',
+            fontFamily: "'Caveat', cursive",
+            fontSize: 52,
+            color: SketchColors.pencil,
+            opacity: progress < 0.5 ? progress * 2 : (1 - progress) * 2,
+            fontStyle: 'italic',
+          }}>
+            … on attend que l'os accueille la racine …
+          </div>
+        )}
+      </Sprite>
+
+      {/* Scene 3: couronne */}
+      <Sprite start={9.3} end={14.0}>
+        {({ progress }) => (
+          <>
+            <SceneCouronne/>
+            <HandwrittenLabel text="② Le pilier prothétique"
+              x={140} y={500} size={36} progress={clamp(progress / 0.25, 0, 1)} rotate={-1}/>
+            <HandwrittenLabel text="③ Et la couronne céramique"
+              x={140} y={620} size={42} progress={clamp((progress - 0.3) / 0.3, 0, 1)} rotate={-1}/>
+            <HandwrittenLabel text="qui ressemble à votre vraie dent !"
+              x={140} y={680} size={28} progress={clamp((progress - 0.5) / 0.4, 0, 1)}
+              color={SketchColors.pencilLight} rotate={-1}/>
+          </>
+        )}
+      </Sprite>
+
+      {/* Final beat — full smile */}
+      <Sprite start={14.0} end={17.0}>
+        {({ progress }) => (
+          <div style={{
+            position: 'absolute', left: 0, right: 0, top: '38%',
+            textAlign: 'center',
+            opacity: progress < 0.2 ? progress * 5 : progress > 0.8 ? (1 - progress) * 5 : 1,
+          }}>
+            <div style={{
+              fontFamily: "'Caveat', cursive",
+              fontSize: 96, fontWeight: 700,
+              color: SketchColors.pencil,
+              transform: `rotate(-1deg) scale(${0.9 + 0.1 * Math.min(1, progress * 4)})`,
+              transformOrigin: 'center',
+            }}>
+              Une dent comme avant.
+            </div>
+            <div style={{
+              fontFamily: "'Caveat', cursive",
+              fontSize: 42, marginTop: 16,
+              color: SketchColors.pencilLight,
+              fontStyle: 'italic',
+            }}>
+              Solide, durable, naturelle.
+            </div>
+            <svg width="300" height="40" style={{ marginTop: 24 }}>
+              <path d="M 30 20 Q 90 8 150 20 T 270 20"
+                    stroke={SketchColors.pencil} strokeWidth="2.5" fill="none" strokeLinecap="round"
+                    style={{
+                      strokeDasharray: 280,
+                      strokeDashoffset: 280 - 280 * Math.min(1, progress * 3),
+                    }}/>
+            </svg>
+          </div>
+        )}
+      </Sprite>
+
+      <Signature progress={clamp((time - 14) / 1, 0, 1)}/>
+    </PaperBg>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <Stage width={1920} height={1080} duration={17} background="#f6efe2" persistKey="dent01">
+    <ImplantAnimation/>
+  </Stage>
+);
+</script>
+</body>
+</html>

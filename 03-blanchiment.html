@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<title>Dr. Crutel — N°3 Blanchiment à domicile</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Kalam:wght@300;400;700&family=Patrick+Hand&display=swap" rel="stylesheet"/>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #0a0a0a; font-family: 'Caveat', cursive; overflow: hidden; }
+  #root { position: absolute; inset: 0; }
+  .nav-back { position: fixed; top: 16px; left: 16px; z-index: 100; font-family: 'Caveat', cursive; font-size: 22px; color: #f6efe2; text-decoration: none; background: rgba(20,20,20,0.7); padding: 6px 14px; border: 1px solid rgba(246,239,226,0.2); border-radius: 6px; backdrop-filter: blur(6px); }
+</style>
+<style id="embed-mode-style">
+/* Embed mode: hide playback bar + nav, transparent letterbox bg */
+body.embed-mode { background: transparent !important; }
+body.embed-mode .nav-back { display: none !important; }
+/* Stage's flex container is #root > div; PlaybackBar is its 2nd child */
+body.embed-mode #root > div { background: transparent !important; }
+body.embed-mode #root > div > *:nth-child(2) { display: none !important; }
+/* Slight shadow tweak so it sits flat in iframe */
+body.embed-mode #root > div > div:first-child > div { box-shadow: none !important; }
+</style>
+<script>
+(function() {
+  if (new URLSearchParams(location.search).has('embed')) {
+    document.documentElement.classList.add('embed-mode');
+    document.addEventListener('DOMContentLoaded', () => {
+      document.body.classList.add('embed-mode');
+    });
+  }
+})();
+</script>
+</head>
+<body data-anim-root data-screen-label="03 Blanchiment t=0s">
+<a class="nav-back" href="index.html">← Carnet</a>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="animations.jsx"></script>
+<script type="text/babel" src="sketch-components.jsx"></script>
+<script type="text/babel">
+const { useEffect } = React;
+
+function BlanchimentAnim() {
+  const time = useTime();
+  useEffect(() => { document.body.setAttribute('data-screen-label', `03 Blanchiment t=${Math.floor(time)}s`); }, [Math.floor(time)]);
+
+  const TeethRow = ({ whiteness, drawP = 1, showStain = 0 }) => (
+    <g transform="translate(960 600)">
+      {[-2, -1, 0, 1, 2].map((i, idx) => (
+        <ToothIncisor key={i} cx={i * 130} cy={0} scale={1.4}
+                      drawProgress={Math.max(0, drawP - idx * 0.04)}
+                      washProgress={1} showGum={true}
+                      whiteningProgress={whiteness}/>
+      ))}
+      {showStain > 0 && (
+        <g opacity={showStain} filter="url(#watercolorEdge)">
+          {[-2, -1, 0, 1, 2].map(i => (
+            <ellipse key={i} cx={i * 130} cy={-20} rx="30" ry="55"
+                    fill="rgba(220, 180, 110, 0.5)"/>
+          ))}
+        </g>
+      )}
+    </g>
+  );
+
+  return (
+    <PaperBg>
+      <PageHeader title="Le blanchiment à domicile" subtitle="gouttière + gel · sur 1 mois" num={3} progress={1}/>
+
+      {/* Scene 1: empreinte au cabinet → gouttière sur-mesure */}
+      <Sprite start={0.5} end={4.5}>
+        {({ progress }) => {
+          const drawP = clamp(progress / 0.4, 0, 1);
+          const stainP = clamp((progress - 0.3) / 0.4, 0, 1);
+          return (
+            <>
+              <svg width="1920" height="1080" style={{ position: 'absolute', inset: 0 }}>
+                <SketchDefs/>
+                <TeethRow whiteness={0} drawP={drawP} showStain={stainP}/>
+              </svg>
+              <HandwrittenLabel text="① Au cabinet : empreinte"
+                x={140} y={400} size={44} progress={drawP} rotate={-1}/>
+              <HandwrittenLabel text="↳ pour fabriquer une gouttière à votre forme"
+                x={140} y={460} size={26} progress={clamp((progress - 0.3) / 0.4, 0, 1)}
+                color={SketchColors.pencilLight} rotate={-1}/>
+            </>
+          );
+        }}
+      </Sprite>
+
+      {/* Scene 2: at home — apply gel + insert tray (no UV lamp!) */}
+      <Sprite start={4.5} end={9.0}>
+        {({ progress }) => {
+          // Show tray with gel, then user puts it in mouth
+          const trayP = clamp(progress / 0.2, 0, 1);
+          const gelP = clamp((progress - 0.2) / 0.25, 0, 1);
+          const insertP = clamp((progress - 0.5) / 0.3, 0, 1);
+          // Tray slides from upper-right toward teeth as it's "inserted"
+          const trayX = interpolate([0.5, 0.85], [400, 0], Easing.easeInOutCubic)(progress);
+          const trayY = interpolate([0.5, 0.85], [-220, -50], Easing.easeInOutCubic)(progress);
+          const trayScale = interpolate([0.5, 0.85], [0.7, 1], Easing.easeInOutCubic)(progress);
+
+          return (
+            <>
+              <svg width="1920" height="1080" style={{ position: 'absolute', inset: 0 }}>
+                <SketchDefs/>
+                {/* Teeth (slight progress) */}
+                <TeethRow whiteness={0.1}/>
+                {/* The custom tray (drawn off to the right initially, then inserted) */}
+                <g transform={`translate(${960 + trayX} ${600 + trayY}) scale(${trayScale})`}
+                   opacity={trayP}>
+                  {/* Tray shell */}
+                  <path d="M -390 -90 Q 0 -120 390 -90 Q 410 -10 395 70 Q 410 95 390 110 Q 0 130 -390 110 Q -410 95 -395 70 Q -410 -10 -390 -90 Z"
+                        fill="rgba(200, 220, 235, 0.3)"
+                        stroke={SketchColors.pencil} strokeWidth="1.6" filter="url(#pencilRough)"/>
+                  <path d="M -370 -82 Q 0 -110 370 -82"
+                        stroke="rgba(255,255,255,0.7)" strokeWidth="2.5" fill="none"/>
+                  {/* Gel inside tray (small dots in each tooth slot) */}
+                  {gelP > 0 && (
+                    <g opacity={gelP}>
+                      {[-260, -130, 0, 130, 260].map((x, i) => (
+                        <ellipse key={i} cx={x} cy={-30} rx="32" ry="22"
+                                fill="rgba(255, 248, 230, 0.85)" filter="url(#watercolorEdge)"/>
+                      ))}
+                    </g>
+                  )}
+                </g>
+                {/* Gel syringe (only during gel phase, before insertion) */}
+                {gelP > 0 && progress < 0.5 && (
+                  <g transform="translate(1500 280) rotate(45)" opacity={gelP}>
+                    <rect x="0" y="-12" width="160" height="24" rx="6"
+                          fill="rgba(255, 248, 230, 0.85)" stroke={SketchColors.pencil} strokeWidth="1.4" filter="url(#pencilRough)"/>
+                    <rect x="-30" y="-9" width="30" height="18" rx="3"
+                          fill="rgba(180,160,140,0.6)" stroke={SketchColors.pencil} strokeWidth="1.2"/>
+                    <line x1="160" y1="0" x2="195" y2="0" stroke={SketchColors.pencil} strokeWidth="1.8"/>
+                    <ellipse cx="200" cy="2" rx="3" ry="5" fill="rgba(255, 248, 230, 0.9)"/>
+                  </g>
+                )}
+              </svg>
+              <HandwrittenLabel text="② À la maison, chaque soir :"
+                x={140} y={380} size={40} progress={clamp(progress / 0.2, 0, 1)} rotate={-1}/>
+              <HandwrittenLabel text="• une goutte de gel dans chaque alvéole"
+                x={160} y={445} size={26} progress={gelP}
+                color={SketchColors.pencilLight} rotate={-1}/>
+              <HandwrittenLabel text="• gouttière en place pendant la nuit"
+                x={160} y={490} size={26} progress={clamp((progress - 0.45) / 0.3, 0, 1)}
+                color={SketchColors.pencilLight} rotate={-1}/>
+              <HandwrittenLabel text="(ou 1-2h dans la journée)"
+                x={160} y={530} size={22} progress={clamp((progress - 0.6) / 0.3, 0, 1)}
+                color={SketchColors.pencilLight} rotate={-1}/>
+            </>
+          );
+        }}
+      </Sprite>
+
+      {/* Scene 3: 4-week calendar — teeth get whiter each week */}
+      <Sprite start={9.0} end={14.5}>
+        {({ progress }) => {
+          // 4 weeks: each week shows tooth getting whiter
+          const week = Math.min(3, Math.floor(progress * 4));
+          const localT = (progress * 4) - week;
+          const eased = Easing.easeInOutCubic(clamp(localT, 0, 1));
+          const startW = week * 0.25;
+          const endW = (week + 1) * 0.25;
+          const currentW = startW + (endW - startW) * eased;
+          // Moon icon to suggest "nuit"
+          const moonPulse = 0.85 + 0.15 * Math.sin(time * 2);
+
+          return (
+            <>
+              <svg width="1920" height="1080" style={{ position: 'absolute', inset: 0 }}>
+                <SketchDefs/>
+                <TeethRow whiteness={currentW}/>
+                {/* Calendar weeks indicator */}
+                <g transform="translate(360 410)">
+                  {[0, 1, 2, 3].map(i => (
+                    <g key={i} transform={`translate(${i * 320} 0)`}>
+                      <rect x="-60" y="-40" width="120" height="80" rx="6"
+                            fill={i <= week ? 'rgba(180, 210, 230, 0.35)' : 'rgba(0,0,0,0.04)'}
+                            stroke={SketchColors.pencil} strokeWidth="1.4" filter="url(#pencilRough)"/>
+                      <text x="0" y="-10" textAnchor="middle"
+                            style={{ font: "500 22px 'Caveat', cursive", fill: SketchColors.pencilLight }}>
+                        Semaine
+                      </text>
+                      <text x="0" y="22" textAnchor="middle"
+                            style={{ font: "700 36px 'Caveat', cursive", fill: SketchColors.pencil }}>
+                        {i + 1}
+                      </text>
+                      {/* small tooth swatch showing whitening progress */}
+                      <g transform={`translate(0 ${i === week ? -3 + Math.sin(time * 3) * 2 : 0})`}>
+                      </g>
+                      {i < 3 && (
+                        <line x1="60" y1="0" x2="260" y2="0"
+                              stroke={SketchColors.pencilLight} strokeWidth="1.2"
+                              strokeDasharray="3 4"/>
+                      )}
+                    </g>
+                  ))}
+                </g>
+                {/* Moon icon to symbolize "during the night" */}
+                <g transform={`translate(1740 180) scale(${moonPulse})`} opacity="0.5">
+                  <path d="M 0 -28 A 28 28 0 1 0 12 28 A 22 22 0 1 1 0 -28 Z"
+                        fill="rgba(244, 223, 166, 0.5)"
+                        stroke={SketchColors.pencil} strokeWidth="1.4" filter="url(#pencilRough)"/>
+                </g>
+              </svg>
+              <HandwrittenLabel text="③ La teinte s'éclaircit semaine après semaine"
+                x={140} y={550} size={32} progress={clamp(progress / 0.3, 0, 1)}
+                color={SketchColors.pencilLight} rotate={-1}/>
+            </>
+          );
+        }}
+      </Sprite>
+
+      {/* Final */}
+      <Sprite start={14.5} end={17.5}>
+        {({ progress }) => (
+          <>
+            <svg width="1920" height="1080" style={{ position: 'absolute', inset: 0 }}>
+              <SketchDefs/>
+              <TeethRow whiteness={1}/>
+              {/* sparkles */}
+              <g opacity={clamp(progress / 0.3, 0, 1)}>
+                {[
+                  {x: 720, y: 480}, {x: 870, y: 440}, {x: 1000, y: 460},
+                  {x: 1140, y: 440}, {x: 1280, y: 470},
+                  {x: 800, y: 660}, {x: 1180, y: 660},
+                ].map((p, i) => {
+                  const phase = ((time * 1.6) + i * 0.2) % 1;
+                  const s = Math.sin(phase * Math.PI);
+                  return (
+                    <g key={i} transform={`translate(${p.x} ${p.y})`}
+                       stroke={SketchColors.pencil} strokeWidth="1.4" strokeLinecap="round"
+                       opacity={s * 0.9}>
+                      <line x1="-10" y1="0" x2="10" y2="0"/>
+                      <line x1="0" y1="-10" x2="0" y2="10"/>
+                    </g>
+                  );
+                })}
+              </g>
+            </svg>
+            <div style={{ position: 'absolute', left: 0, right: 0, top: 220, textAlign: 'center',
+              opacity: progress < 0.2 ? progress * 5 : progress > 0.85 ? (1 - progress) * 6.6 : 1 }}>
+              <div style={{ fontFamily: "'Caveat', cursive", fontSize: 84, fontWeight: 700, color: SketchColors.pencil, transform: 'rotate(-1deg)' }}>
+                Après 1 mois — un sourire qui rayonne.
+              </div>
+              <div style={{ fontFamily: "'Caveat', cursive", fontSize: 34, marginTop: 8, color: SketchColors.pencilLight, fontStyle: 'italic' }}>
+                À votre rythme · sans abîmer l'émail.
+              </div>
+            </div>
+          </>
+        )}
+      </Sprite>
+
+      <Signature progress={clamp((time - 14.5) / 1, 0, 1)}/>
+    </PaperBg>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <Stage width={1920} height={1080} duration={17.5} background="#f6efe2" persistKey="dent03">
+    <BlanchimentAnim/>
+  </Stage>
+);
+</script>
+</body>
+</html>

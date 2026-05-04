@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<title>Dr. Crutel — N°2 Carie & Onlay</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Kalam:wght@300;400;700&family=Patrick+Hand&display=swap" rel="stylesheet"/>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #0a0a0a; font-family: 'Caveat', cursive; overflow: hidden; }
+  #root { position: absolute; inset: 0; }
+  .nav-back { position: fixed; top: 16px; left: 16px; z-index: 100; font-family: 'Caveat', cursive; font-size: 22px; color: #f6efe2; text-decoration: none; background: rgba(20,20,20,0.7); padding: 6px 14px; border: 1px solid rgba(246,239,226,0.2); border-radius: 6px; backdrop-filter: blur(6px); }
+  .nav-back:hover { background: rgba(40,40,40,0.9); }
+</style>
+<style id="embed-mode-style">
+/* Embed mode: hide playback bar + nav, transparent letterbox bg */
+body.embed-mode { background: transparent !important; }
+body.embed-mode .nav-back { display: none !important; }
+/* Stage's flex container is #root > div; PlaybackBar is its 2nd child */
+body.embed-mode #root > div { background: transparent !important; }
+body.embed-mode #root > div > *:nth-child(2) { display: none !important; }
+/* Slight shadow tweak so it sits flat in iframe */
+body.embed-mode #root > div > div:first-child > div { box-shadow: none !important; }
+</style>
+<script>
+(function() {
+  if (new URLSearchParams(location.search).has('embed')) {
+    document.documentElement.classList.add('embed-mode');
+    document.addEventListener('DOMContentLoaded', () => {
+      document.body.classList.add('embed-mode');
+    });
+  }
+})();
+</script>
+</head>
+<body data-anim-root data-screen-label="02 Carie t=0s">
+<a class="nav-back" href="index.html">← Carnet</a>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="animations.jsx"></script>
+<script type="text/babel" src="sketch-components.jsx"></script>
+
+<script type="text/babel">
+const { useEffect } = React;
+
+function CarieAnim() {
+  const time = useTime();
+  useEffect(() => { document.body.setAttribute('data-screen-label', `02 Carie t=${Math.floor(time)}s`); }, [Math.floor(time)]);
+
+  return (
+    <PaperBg>
+      <PageHeader title="La carie & l'onlay" subtitle="quand la dent a besoin d'aide" num={2} progress={1}/>
+
+      {/* Scene 1: dent saine puis carie qui apparaît */}
+      <Sprite start={0.5} end={4.5}>
+        {({ progress }) => {
+          const drawP = clamp(progress / 0.3, 0, 1);
+          const washP = clamp((progress - 0.2) / 0.3, 0, 1);
+          const cariesP = clamp((progress - 0.55) / 0.35, 0, 1);
+          return (
+            <>
+              <svg width="1920" height="1080" style={{ position: 'absolute', inset: 0 }}>
+                <SketchDefs/>
+                <ToothMolar cx={960} cy={620} scale={2.4} drawProgress={drawP}
+                            washProgress={washP} showGum={true} showBone={true}
+                            cariesProgress={cariesP} cariesPos="top"/>
+              </svg>
+              <HandwrittenLabel text="Une carie commence…"
+                x={140} y={400} size={42} progress={drawP} rotate={-1}/>
+              {cariesP > 0.3 && (
+                <>
+                  <svg width="1920" height="1080" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+                    <ArrowSketch from={{x: 1340, y: 380}} to={{x: 945, y: 425}} curvature={20} progress={clamp((cariesP - 0.3) / 0.5, 0, 1)}/>
+                  </svg>
+                  <HandwrittenLabel text="…le sucre creuse l'émail"
+                    x={1380} y={340} size={32} progress={clamp((cariesP - 0.3) / 0.5, 0, 1)}
+                    color={SketchColors.pencilLight} rotate={-2}/>
+                </>
+              )}
+            </>
+          );
+        }}
+      </Sprite>
+
+      {/* Scene 2: nettoyage (cavité préparée) */}
+      <Sprite start={4.5} end={9.0}>
+        {({ progress }) => {
+          // Drill animation
+          const drillX = interpolate([0, 0.4], [200, 0], Easing.easeOutCubic)(progress);
+          const drillVisible = progress < 0.7 ? 1 : Math.max(0, 1 - (progress - 0.7) * 5);
+          const cleanedP = clamp((progress - 0.4) / 0.3, 0, 1);
+          // shake
+          const shake = progress > 0.15 && progress < 0.4 ? Math.sin(progress * 80) * 2 : 0;
+          return (
+            <>
+              <svg width="1920" height="1080" style={{ position: 'absolute', inset: 0 }}>
+                <SketchDefs/>
+                <g transform={`translate(${shake} 0)`}>
+                  {/* tooth with prepared cavity */}
+                  <ToothMolar cx={960} cy={620} scale={2.4} drawProgress={1}
+                              washProgress={1} showGum={true} showBone={true}/>
+                  {/* prepared cavity (clean cut on top) */}
+                  {cleanedP > 0 && (
+                    <g opacity={cleanedP}>
+                      <path d="M 855 395 Q 870 445 920 450 L 1000 450 Q 1050 445 1065 395 Q 1040 380 960 380 Q 880 380 855 395 Z"
+                            fill="rgba(245, 240, 232, 0.95)" stroke={SketchColors.pencil} strokeWidth="1.4" filter="url(#pencilRough)"/>
+                    </g>
+                  )}
+                  {/* old caries fading */}
+                  {progress < 0.5 && (
+                    <ellipse cx="950" cy="403" rx={32 - 28 * progress} ry={20 - 18 * progress}
+                            fill="rgba(120, 70, 40, 0.6)" filter="url(#watercolorEdge)"
+                            opacity={Math.max(0, 1 - progress * 1.8)}/>
+                  )}
+                </g>
+                {/* drill */}
+                {drillVisible > 0 && (
+                  <g transform={`translate(${1300 + drillX} 250) rotate(35)`} opacity={drillVisible}>
+                    <rect x="0" y="-12" width="160" height="24" rx="6"
+                          fill="rgba(180,210,230,0.8)" stroke={SketchColors.pencil} strokeWidth="1.4"/>
+                    <rect x="155" y="-4" width="60" height="8"
+                          fill="rgba(160,160,160,0.8)" stroke={SketchColors.pencil} strokeWidth="1.2"/>
+                    <path d="M 215 0 L 240 -3 L 240 3 Z" fill={SketchColors.pencil}/>
+                    {/* spinning effect lines */}
+                    <g stroke={SketchColors.pencilLight} strokeWidth="1" opacity="0.6">
+                      <path d="M 230 -10 Q 240 -8 250 -10"/>
+                      <path d="M 230 10 Q 240 8 250 10"/>
+                    </g>
+                  </g>
+                )}
+              </svg>
+              <HandwrittenLabel text="① On nettoie la carie"
+                x={140} y={420} size={44} progress={clamp(progress / 0.3, 0, 1)} rotate={-1}/>
+              <HandwrittenLabel text="avec délicatesse"
+                x={140} y={480} size={28} progress={clamp((progress - 0.2) / 0.3, 0, 1)}
+                color={SketchColors.pencilLight} rotate={-1}/>
+            </>
+          );
+        }}
+      </Sprite>
+
+      {/* Scene 3: pose de l'onlay */}
+      <Sprite start={9.0} end={14.5}>
+        {({ progress }) => {
+          const onlayY = interpolate([0.0, 0.5], [-260, 0], Easing.easeInOutCubic)(progress);
+          const onlayOpacity = clamp(progress / 0.1, 0, 1);
+          const fillingP = clamp((progress - 0.5) / 0.3, 0, 1);
+          return (
+            <>
+              <svg width="1920" height="1080" style={{ position: 'absolute', inset: 0 }}>
+                <SketchDefs/>
+                <ToothMolar cx={960} cy={620} scale={2.4} drawProgress={1}
+                            washProgress={1} showGum={true} showBone={true}
+                            filling="onlay" fillingProgress={fillingP}/>
+                {/* descending onlay */}
+                {onlayOpacity > 0 && progress < 0.55 && (
+                  <g transform={`translate(0 ${onlayY})`} opacity={onlayOpacity}>
+                    <path d="M 855 395 Q 870 445 920 450 L 1000 450 Q 1050 445 1065 395 Q 1040 380 960 380 Q 880 380 855 395 Z"
+                          fill="rgba(220, 215, 200, 0.95)"
+                          stroke={SketchColors.pencil} strokeWidth="1.4" filter="url(#pencilRough)"/>
+                    {/* shimmer */}
+                    <path d="M 880 395 Q 920 410 960 405"
+                          stroke="rgba(255,255,255,0.7)" strokeWidth="2" fill="none"/>
+                  </g>
+                )}
+              </svg>
+              <HandwrittenLabel text="② L'onlay sur-mesure"
+                x={140} y={420} size={44} progress={clamp(progress / 0.3, 0, 1)} rotate={-1}/>
+              <HandwrittenLabel text="céramique - taillé pour la dent"
+                x={140} y={480} size={28} progress={clamp((progress - 0.2) / 0.3, 0, 1)}
+                color={SketchColors.pencilLight} rotate={-1}/>
+              {fillingP > 0.3 && (
+                <HandwrittenLabel text="↳ ajusté & collé"
+                  x={1300} y={520} size={32} progress={clamp((fillingP - 0.3) / 0.5, 0, 1)}
+                  color={SketchColors.pencilLight} rotate={3}/>
+              )}
+            </>
+          );
+        }}
+      </Sprite>
+
+      {/* Final */}
+      <Sprite start={14.5} end={17.5}>
+        {({ progress }) => (
+          <div style={{
+            position: 'absolute', left: 0, right: 0, top: '38%',
+            textAlign: 'center',
+            opacity: progress < 0.2 ? progress * 5 : progress > 0.85 ? (1 - progress) * 6.6 : 1,
+          }}>
+            <div style={{ fontFamily: "'Caveat', cursive", fontSize: 96, fontWeight: 700, color: SketchColors.pencil, transform: 'rotate(-1deg)' }}>
+              Restaurée. Renforcée.
+            </div>
+            <div style={{ fontFamily: "'Caveat', cursive", fontSize: 42, marginTop: 16, color: SketchColors.pencilLight, fontStyle: 'italic' }}>
+              Plus solide que l'amalgame d'antan.
+            </div>
+          </div>
+        )}
+      </Sprite>
+
+      <Signature progress={clamp((time - 14.5) / 1, 0, 1)}/>
+    </PaperBg>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <Stage width={1920} height={1080} duration={17.5} background="#f6efe2" persistKey="dent02">
+    <CarieAnim/>
+  </Stage>
+);
+</script>
+</body>
+</html>

@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<title>Dr. Crutel — N°6 Composite esthétique</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Kalam:wght@300;400;700&family=Patrick+Hand&display=swap" rel="stylesheet"/>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #0a0a0a; font-family: 'Caveat', cursive; overflow: hidden; }
+  #root { position: absolute; inset: 0; }
+  .nav-back { position: fixed; top: 16px; left: 16px; z-index: 100; font-family: 'Caveat', cursive; font-size: 22px; color: #f6efe2; text-decoration: none; background: rgba(20,20,20,0.7); padding: 6px 14px; border: 1px solid rgba(246,239,226,0.2); border-radius: 6px; }
+</style>
+<style id="embed-mode-style">
+/* Embed mode: hide playback bar + nav, transparent letterbox bg */
+body.embed-mode { background: transparent !important; }
+body.embed-mode .nav-back { display: none !important; }
+/* Stage's flex container is #root > div; PlaybackBar is its 2nd child */
+body.embed-mode #root > div { background: transparent !important; }
+body.embed-mode #root > div > *:nth-child(2) { display: none !important; }
+/* Slight shadow tweak so it sits flat in iframe */
+body.embed-mode #root > div > div:first-child > div { box-shadow: none !important; }
+</style>
+<script>
+(function() {
+  if (new URLSearchParams(location.search).has('embed')) {
+    document.documentElement.classList.add('embed-mode');
+    document.addEventListener('DOMContentLoaded', () => {
+      document.body.classList.add('embed-mode');
+    });
+  }
+})();
+</script>
+</head>
+<body data-anim-root data-screen-label="06 Composite t=0s">
+<a class="nav-back" href="index.html">← Carnet</a>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="animations.jsx"></script>
+<script type="text/babel" src="sketch-components.jsx"></script>
+<script type="text/babel">
+const { useEffect } = React;
+
+function CompositeAnim() {
+  const time = useTime();
+  useEffect(() => { document.body.setAttribute('data-screen-label', `06 Composite t=${Math.floor(time)}s`); }, [Math.floor(time)]);
+
+  // Chip on top-right corner of front tooth
+  const chipPath = "M 22 -132 L 38 -110 L 22 -100 Z";
+
+  return (
+    <PaperBg>
+      <PageHeader title="Le composite esthétique" subtitle="réparer en une seule séance" num={6} progress={1}/>
+
+      {/* Scene 1: dent ébréchée */}
+      <Sprite start={0.5} end={4.0}>
+        {({ progress }) => {
+          const drawP = clamp(progress / 0.4, 0, 1);
+          const washP = clamp((progress - 0.3) / 0.4, 0, 1);
+          return (
+            <>
+              <svg width="1920" height="1080" style={{ position: 'absolute', inset: 0 }}>
+                <SketchDefs/>
+                <g transform="translate(960 600)">
+                  <ToothIncisor cx={0} cy={0} scale={2.4}
+                                drawProgress={drawP} washProgress={washP} showGum={true}/>
+                  {/* the chip (missing piece) — show with hatching */}
+                  {drawP > 0.6 && (
+                    <g opacity={(drawP - 0.6) * 2.5} transform="scale(2.4)">
+                      <path d={chipPath} fill="rgba(0,0,0,0.18)" stroke={SketchColors.pencil}
+                            strokeWidth="1" strokeDasharray="2 2"/>
+                    </g>
+                  )}
+                </g>
+                {drawP > 0.7 && (
+                  <g opacity={(drawP - 0.7) * 3}>
+                    <ArrowSketch from={{x: 1380, y: 360}} to={{x: 1080, y: 320}} curvature={20} progress={1}/>
+                  </g>
+                )}
+              </svg>
+              <HandwrittenLabel text="Une dent ébréchée…"
+                x={140} y={400} size={42} progress={drawP} rotate={-1}/>
+              <HandwrittenLabel text="(choc, usure, vieille obturation)"
+                x={140} y={460} size={26} progress={clamp((progress - 0.3) / 0.4, 0, 1)}
+                color={SketchColors.pencilLight} rotate={-1}/>
+              {drawP > 0.7 && (
+                <HandwrittenLabel text="petit éclat"
+                  x={1400} y={310} size={28} progress={(drawP - 0.7) * 3}
+                  color={SketchColors.pencilLight} rotate={-3}/>
+              )}
+            </>
+          );
+        }}
+      </Sprite>
+
+      {/* Scene 2: application of composite (syringe + layers) */}
+      <Sprite start={4.0} end={10.0}>
+        {({ progress }) => {
+          // Syringe approaches
+          const syrX = interpolate([0, 0.3], [400, 0], Easing.easeOutCubic)(progress);
+          const syrOpacity = clamp(progress / 0.1, 0, 1);
+          // Composite drop: appears in chip area
+          const dropP = clamp((progress - 0.3) / 0.3, 0, 1);
+          // Sculpt/smooth phase
+          const sculptP = clamp((progress - 0.5) / 0.3, 0, 1);
+          // UV cure: bright glow
+          const cureP = progress > 0.8 ? Math.sin((progress - 0.8) * 5 * Math.PI) : 0;
+
+          return (
+            <>
+              <svg width="1920" height="1080" style={{ position: 'absolute', inset: 0 }}>
+                <SketchDefs/>
+                <g transform="translate(960 600)">
+                  <ToothIncisor cx={0} cy={0} scale={2.4}
+                                drawProgress={1} washProgress={1} showGum={true}/>
+                  {/* Composite filling the chip */}
+                  {dropP > 0 && (
+                    <g transform="scale(2.4)" opacity={dropP}>
+                      <path d={chipPath}
+                            fill="rgba(255, 248, 230, 0.95)"
+                            stroke={SketchColors.pencilLight} strokeWidth="0.5"/>
+                      {/* second layer */}
+                      {sculptP > 0 && (
+                        <path d="M 18 -135 Q 30 -118 38 -110 L 38 -100 L 22 -98 Q 16 -115 18 -135 Z"
+                              fill="rgba(255, 252, 245, 0.85)"
+                              opacity={sculptP}/>
+                      )}
+                    </g>
+                  )}
+                  {/* UV cure glow */}
+                  {cureP > 0 && (
+                    <g opacity={cureP}>
+                      <ellipse cx="55" cy="-280" rx="80" ry="50"
+                               fill="rgba(180, 210, 230, 0.5)" filter="url(#watercolorEdge)"/>
+                    </g>
+                  )}
+                </g>
+
+                {/* syringe */}
+                {syrOpacity > 0 && progress < 0.55 && (
+                  <g transform={`translate(${1300 + syrX} 280) rotate(35)`} opacity={syrOpacity}>
+                    <rect x="0" y="-14" width="180" height="28" rx="6"
+                          fill="rgba(180,210,230,0.5)" stroke={SketchColors.pencil} strokeWidth="1.4" filter="url(#pencilRough)"/>
+                    <rect x="-30" y="-10" width="30" height="20" rx="3"
+                          fill="rgba(180,160,140,0.6)" stroke={SketchColors.pencil} strokeWidth="1.2"/>
+                    <line x1="180" y1="0" x2="220" y2="0" stroke={SketchColors.pencil} strokeWidth="2"/>
+                    {/* drip */}
+                    {dropP > 0 && progress < 0.45 && (
+                      <ellipse cx="220" cy="6" rx="4" ry="6" fill="rgba(255, 248, 230, 0.9)"
+                              opacity={dropP * 1.5}/>
+                    )}
+                  </g>
+                )}
+
+                {/* UV lamp */}
+                {progress > 0.78 && progress < 0.95 && (
+                  <g transform="translate(1100 280) rotate(40)" opacity={clamp((progress - 0.78) * 5, 0, 1)}>
+                    <rect x="0" y="-18" width="140" height="36" rx="8"
+                          fill="rgba(120, 100, 90, 0.7)" stroke={SketchColors.pencil} strokeWidth="1.4"/>
+                    <rect x="-30" y="-8" width="30" height="16" rx="3" fill={SketchColors.pencil}/>
+                    <circle cx="135" cy="0" r="14" fill="rgba(180, 210, 230, 0.8)"/>
+                  </g>
+                )}
+              </svg>
+              <HandwrittenLabel text="① Couches de résine composite"
+                x={140} y={400} size={36} progress={clamp(progress / 0.2, 0, 1)} rotate={-1}/>
+              <HandwrittenLabel text="② Sculpte & polit à la main"
+                x={140} y={460} size={28} progress={clamp((progress - 0.3) / 0.3, 0, 1)}
+                color={SketchColors.pencilLight} rotate={-1}/>
+              <HandwrittenLabel text="③ Lampe LED pour durcir"
+                x={140} y={510} size={28} progress={clamp((progress - 0.6) / 0.3, 0, 1)}
+                color={SketchColors.pencilLight} rotate={-1}/>
+            </>
+          );
+        }}
+      </Sprite>
+
+      {/* Scene 3: tooth reborn */}
+      <Sprite start={10.0} end={14.0}>
+        {({ progress }) => (
+          <>
+            <svg width="1920" height="1080" style={{ position: 'absolute', inset: 0 }}>
+              <SketchDefs/>
+              <g transform="translate(960 600)">
+                <ToothIncisor cx={0} cy={0} scale={2.4}
+                              drawProgress={1} washProgress={1} showGum={true}
+                              whiteningProgress={0.3}/>
+              </g>
+              {/* sparkles */}
+              <g opacity={clamp(progress / 0.3, 0, 1)}>
+                {[
+                  {x: 1100, y: 320}, {x: 850, y: 380}, {x: 1080, y: 480},
+                  {x: 870, y: 560}, {x: 1140, y: 580},
+                ].map((p, i) => {
+                  const phase = ((time * 1.5) + i * 0.2) % 1;
+                  const s = Math.sin(phase * Math.PI);
+                  return (
+                    <g key={i} transform={`translate(${p.x} ${p.y})`}
+                       stroke={SketchColors.pencil} strokeWidth="1.4" strokeLinecap="round" opacity={s * 0.9}>
+                      <line x1="-10" y1="0" x2="10" y2="0"/>
+                      <line x1="0" y1="-10" x2="0" y2="10"/>
+                    </g>
+                  );
+                })}
+              </g>
+            </svg>
+            <HandwrittenLabel text="Forme retrouvée"
+              x={140} y={400} size={44} progress={clamp(progress / 0.3, 0, 1)} rotate={-1}/>
+            <HandwrittenLabel text="invisible — fait en 30 minutes"
+              x={140} y={460} size={28} progress={clamp((progress - 0.3) / 0.3, 0, 1)}
+              color={SketchColors.pencilLight} rotate={-1}/>
+          </>
+        )}
+      </Sprite>
+
+      {/* Final */}
+      <Sprite start={14.0} end={17.0}>
+        {({ progress }) => (
+          <div style={{ position: 'absolute', left: 0, right: 0, top: '40%', textAlign: 'center',
+            opacity: progress < 0.2 ? progress * 5 : progress > 0.85 ? (1 - progress) * 6.6 : 1 }}>
+            <div style={{ fontFamily: "'Caveat', cursive", fontSize: 92, fontWeight: 700, color: SketchColors.pencil, transform: 'rotate(-1deg)' }}>
+              Une retouche en douceur.
+            </div>
+            <div style={{ fontFamily: "'Caveat', cursive", fontSize: 36, marginTop: 12, color: SketchColors.pencilLight, fontStyle: 'italic' }}>
+              Sans tailler la dent.
+            </div>
+          </div>
+        )}
+      </Sprite>
+
+      <Signature progress={clamp((time - 14) / 1, 0, 1)}/>
+    </PaperBg>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <Stage width={1920} height={1080} duration={17} background="#f6efe2" persistKey="dent06">
+    <CompositeAnim/>
+  </Stage>
+);
+</script>
+</body>
+</html>
